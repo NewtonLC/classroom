@@ -3,7 +3,7 @@ import styles from './DetailsCSS.module.css';
 import DetailsDashboardList from './DetailsDashboardList';
 import {
   getStudentProgressInSuperblock,
-  extractStudentCompletionTimestamps
+  extractFilteredCompletionTimestamps
 } from '../util/api_proccesor';
 import StudentActivityChart from './StudentActivityChart';
 
@@ -25,13 +25,23 @@ export default function DetailsDashboard(props) {
     );
   };
 
-  const completionTimestamps = extractStudentCompletionTimestamps(
-    props.studentData.certifications
+  const selectedSuperblocks = props.superblocksDetailsJSONArray.map(
+    arrayOfBlockObjs => arrayOfBlockObjs[0].superblock
+  );
+  const filteredCompletionTimestamps = extractFilteredCompletionTimestamps(
+    props.studentData.certifications,
+    selectedSuperblocks
   );
 
   return (
     <>
-      <StudentActivityChart timestamps={completionTimestamps} />
+      {selectedSuperblocks.length > 0 ? (
+        <StudentActivityChart timestamps={filteredCompletionTimestamps} />
+      ) : (
+        <p className={styles.no_certification}>
+          No certifications selected for this class.
+        </p>
+      )}
       {props.superblocksDetailsJSONArray.map((arrayOfBlockObjs, idx) => {
         let index = props.superblocksDetailsJSONArray.indexOf(arrayOfBlockObjs);
         let superblockDashedName =
@@ -42,9 +52,9 @@ export default function DetailsDashboard(props) {
           <div key={idx} className={styles.board_container}>
             <DetailsDashboardList
               superblockTitle={superblockTitle}
-              studentProgressInBlocks={progressInBlocks}
               blockData={arrayOfBlockObjs}
-            />
+              studentProgressInBlocks={progressInBlocks}
+            ></DetailsDashboardList>
           </div>
         );
       })}

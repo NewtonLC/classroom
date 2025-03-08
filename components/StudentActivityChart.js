@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './StudentActivityChart.module.css';
 
 const daysOfWeek = ['Mon', 'Wed', 'Fri']; // Display only a few labels like GitHub
@@ -33,71 +33,114 @@ const getPreviousYearDate = date => {
 };
 
 const StudentActivityChart = ({ timestamps }) => {
-  const activityData = generateActivityData(timestamps);
+  const [weeks, setWeeks] = useState([]);
 
-  const today = new Date();
-  const startDate = getPreviousYearDate(today);
+  useEffect(() => {
+    const activityData = generateActivityData(timestamps);
 
-  // Increment today to the next day to include today's activity
-  today.setDate(today.getDate() + 1);
+    const today = new Date();
+    const startDate = getPreviousYearDate(today);
 
-  const weeks = [];
-  let firstWeek = [];
-  const startDay = startDate.getDay();
+    // Increment today to the next day to include today's activity
+    today.setDate(today.getDate() + 1);
 
-  // Fill the first week with the correct dates
-  for (let i = 0; i < startDay; i++) {
-    firstWeek.push({ date: null, count: 0 });
-  }
+    const weeks = [];
+    let firstWeek = [];
+    const startDay = startDate.getDay();
 
-  let chart_cutoff = false;
-  for (let i = 0; i < 54; i++) {
-    const week = i === 0 ? firstWeek : [];
-    if (chart_cutoff) {
-      break;
+    // Fill the first week with the correct dates
+    for (let i = 0; i < startDay; i++) {
+      firstWeek.push({ date: null, count: 0 });
     }
-    for (let j = week.length; j < 7; j++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i * 7 + j - startDay);
-      if (date.toDateString() === today.toDateString()) {
-        chart_cutoff = true;
+
+    let chart_cutoff = false;
+    for (let i = 0; i < 54; i++) {
+      const week = i === 0 ? firstWeek : [];
+      if (chart_cutoff) {
         break;
       }
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      )}-${String(date.getDate()).padStart(2, '0')}`;
-      week.push({ date, count: activityData[key] || 0 });
+      for (let j = week.length; j < 7; j++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i * 7 + j - startDay);
+        if (date.toDateString() === today.toDateString()) {
+          chart_cutoff = true;
+          break;
+        }
+        const key = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        week.push({ date, count: activityData[key] || 0 });
+      }
+      weeks.push(week);
     }
-    weeks.push(week);
-  }
+
+    setWeeks(weeks);
+  }, [timestamps]);
 
   return (
-    <div className={styles.chart}>
-      <div className={styles.dayLabels}>
-        {daysOfWeek.map((day, index) => (
-          <div key={index} className={styles.dayLabel}>
-            {day}
+    <div className={styles.parentContainer}>
+      <div className={styles.chartContainer}>
+        <div className={styles.chartHeader}>
+          <h3 className={styles.contributionsTotal}>
+            {timestamps.length} contributions in the last year
+          </h3>
+        </div>
+        <div className={styles.monthLabels}>
+          {weeks.map((week, index) => {
+            const firstDay = week[0]?.date;
+            if (firstDay && firstDay.getDate() <= 8 && firstDay.getDate() > 1) {
+              return (
+                <div key={index} className={styles.monthLabel}>
+                  {firstDay.toLocaleString('default', { month: 'short' })}
+                </div>
+              );
+            }
+            return <div key={index} className={styles.monthLabel}></div>;
+          })}
+        </div>
+        <div className={styles.chart}>
+          <div className={styles.dayLabels}>
+            {daysOfWeek.map((day, index) => (
+              <div key={index} className={styles.dayLabel}>
+                {day}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className={styles.grid}>
-        {weeks.map((week, index) => (
-          <div key={index} className={styles.week}>
-            {week.map((day, index) =>
-              day.date ? (
+
+          <div className={styles.chartWithLegend}>
+            <div className={styles.grid}>
+              {weeks.map((week, index) => (
+                <div key={index} className={styles.week}>
+                  {week.map((day, index) =>
+                    day.date ? (
+                      <div
+                        key={index}
+                        className={styles.day}
+                        style={{ backgroundColor: getColor(day.count) }}
+                        title={`${day.date.toDateString()}: ${
+                          day.count
+                        } completions`}
+                      ></div>
+                    ) : (
+                      <div key={index} className={styles.dayEmpty}></div>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className={styles.legend}>
+              <span>Less</span>
+              {activityLevels.map((color, index) => (
                 <div
                   key={index}
-                  className={styles.day}
-                  style={{ backgroundColor: getColor(day.count) }}
-                  title={`${day.date.toDateString()}: ${day.count} completions`}
+                  className={styles.legendColor}
+                  style={{ backgroundColor: color }}
                 ></div>
-              ) : (
-                <div key={index} className={styles.dayEmpty}></div>
-              )
-            )}
+              ))}
+              <span>More</span>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
