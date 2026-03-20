@@ -1,17 +1,36 @@
-export const FCC_BASE_URL = 'https://www.freecodecamp.org/curriculum-data/v1/';
-export const AVAILABLE_SUPER_BLOCKS =
-  FCC_BASE_URL + 'available-superblocks.json';
+// TEMPORARY: Replace deprecated FCC URL usage with local mock data
+// Previously, this file called a now-deprecated FCC API to fetch curriculum data.
+// The functions have been refactored to use local mock data instead.
+
+// Additionally, some functions have been temporarily updated to use mock data,
+// but this file as a whole will be revamped in a future update.
+
+const MOCK_SUPERBLOCKS = [
+  {
+    dashedName: '2022/responsive-web-design',
+    title: 'Responsive Web Design'
+  },
+  {
+    dashedName: 'quality-assurance',
+    title: 'Quality Assurance'
+  }
+];
+
+// You will paste real JSON payloads here (intro/blocks shape)
+const MOCK_SUPERBLOCK_JSON_BY_DASHED_NAME = {
+  '2022/responsive-web-design': {
+    intro: [],
+    blocks: {}
+  },
+  'quality-assurance': {
+    intro: [],
+    blocks: {}
+  }
+};
 
 /** ============ getAllTitlesAndDashedNamesSuperblockJSONArray() ============ */
 export async function getAllTitlesAndDashedNamesSuperblockJSONArray() {
-  // calls this API https://www.freecodecamp.org/curriculum-data/v1/available-superblocks.json
-  const superblocksres = await fetch(AVAILABLE_SUPER_BLOCKS);
-
-  // the response of this structure is [ superblocks: [ {}, {}, ...etc] ]
-  const curriculumData = await superblocksres.json();
-
-  // which is why we return curriculumData.superblocks
-  return curriculumData.superblocks;
+  return MOCK_SUPERBLOCKS;
 }
 
 /** ============ getAllSuperblockTitlesAndDashedNames() ============ */
@@ -121,13 +140,10 @@ export function sortSuperBlocks(superblock) {
  *
  * */
 export async function getDashedNamesURLs(fccCertifications) {
-  const superblocksres = await fetch(AVAILABLE_SUPER_BLOCKS);
-
-  const curriculumData = await superblocksres.json();
-
-  return fccCertifications.map(
-    x => FCC_BASE_URL + curriculumData['superblocks'][x]['dashedName'] + '.json'
-  );
+  // Keep function name for compatibility; return dashed names as identifiers
+  return fccCertifications
+    .map(i => MOCK_SUPERBLOCKS[i]?.dashedName)
+    .filter(Boolean);
 }
 
 /** ============ getNonDashedNamesURLs([0,1,2) ============ */
@@ -147,13 +163,9 @@ export async function getDashedNamesURLs(fccCertifications) {
  * fccCertifications column): "Select certifications:"
  */
 export async function getNonDashedNamesURLs(fccCertificationsIndex) {
-  const superblocksres = await fetch(AVAILABLE_SUPER_BLOCKS);
-
-  const curriculumData = await superblocksres.json();
-
-  return fccCertificationsIndex.map(
-    x => curriculumData['superblocks'][x]['title']
-  );
+  return fccCertificationsIndex
+    .map(i => MOCK_SUPERBLOCKS[i]?.title)
+    .filter(Boolean);
 }
 
 /** ============ getSuperBlockJsons(superblockURLS) ============ */
@@ -182,15 +194,10 @@ export async function getNonDashedNamesURLs(fccCertificationsIndex) {
  * ]
  *
  * */
-export async function getSuperBlockJsons(superblockURLS) {
-  let responses = await Promise.all(
-    superblockURLS.map(async currUrl => {
-      let currResponse = await fetch(currUrl);
-      let superblockJSON = currResponse.json();
-      return superblockJSON;
-    })
-  );
-  return responses;
+export async function getSuperBlockJsons(superblockIdentifiers) {
+  return superblockIdentifiers.map(dashedName => ({
+    [dashedName]: MOCK_SUPERBLOCK_JSON_BY_DASHED_NAME[dashedName]
+  }));
 }
 
 /** ============ createSuperblockDashboardObject(superblock) ============ */

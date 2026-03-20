@@ -8,6 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useState } from 'react';
 import redirectUser from '../../util/redirectUser.js';
+import { getAllTitlesAndDashedNamesSuperblockJSONArray } from '../../util/api_proccesor';
 
 export async function getServerSideProps(ctx) {
   // Dynamic import to prevent Prisma from being bundled for client
@@ -45,14 +46,14 @@ export async function getServerSideProps(ctx) {
     })
   );
 
-  const superblocksres = await fetch(
-    'https://www.freecodecamp.org/curriculum-data/v1/available-superblocks.json'
-  );
-  const superblocksreq = await superblocksres.json();
-  const blocks = [];
-  superblocksreq['superblocks'].map((x, i) =>
-    blocks.push({ value: i, label: x.dashedName, displayName: x.title })
-  );
+  // Replaced deprecated FCC endpoint with local mock-backed utility
+  const superblocks = await getAllTitlesAndDashedNamesSuperblockJSONArray();
+  const blocks = superblocks.map((x, i) => ({
+    value: i,
+    label: x.dashedName,
+    displayName: x.title
+  }));
+
   return {
     props: {
       userSession,
