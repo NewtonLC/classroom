@@ -4,9 +4,19 @@ import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const challengeMap = JSON.parse(
-  readFileSync(join(__dirname, '../data/challengeMap.json'), 'utf8')
-);
+
+let _challengeMap = null;
+
+// Deferred so next build doesn't fail when data/challengeMap.json hasn't
+// been generated yet (it's produced by scripts/build-challenge-map-graphql.mjs).
+function getChallengeMap() {
+  if (!_challengeMap) {
+    _challengeMap = JSON.parse(
+      readFileSync(join(__dirname, '../data/challengeMap.json'), 'utf8')
+    );
+  }
+  return _challengeMap;
+}
 
 /**
  * Resolves a full FCC Proper student data object (from the proxy) to the dashboard format.
@@ -19,7 +29,7 @@ export function resolveAllStudentsToDashboardFormat(
   curriculumMap = null
 ) {
   if (!studentDataFromFCC || typeof studentDataFromFCC !== 'object') return [];
-  const mapToUse = curriculumMap || challengeMap;
+  const mapToUse = curriculumMap || getChallengeMap();
   return Object.entries(studentDataFromFCC).map(
     ([email, completedChallenges]) => ({
       email,
