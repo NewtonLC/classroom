@@ -2,7 +2,6 @@ import Navbar from '../../components/navbar';
 import React from 'react';
 import { SessionProvider } from 'next-auth/react';
 import renderer from 'react-test-renderer';
-import Link from 'next/link';
 
 describe('Navbar rendering correctly', () => {
   it('renders correctly', () => {
@@ -16,17 +15,13 @@ describe('Navbar rendering correctly', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders Classes link as "Classes" for non-admin session', () => {
+  it('renders Classes link for TEACHER session', () => {
     const tree = renderer
       .create(
         <SessionProvider
           session={{ user: { name: 'test user', role: 'TEACHER' } }}
         >
-          <Navbar>
-            <div>
-              <Link href='/classes'>Classes</Link>
-            </div>
-          </Navbar>
+          <Navbar />
         </SessionProvider>
       )
       .toJSON();
@@ -36,17 +31,13 @@ describe('Navbar rendering correctly', () => {
     expect(jsonString).not.toContain('Dashboard');
   });
 
-  it('renders Classes link as "Dashboard" for ADMIN session', () => {
+  it('renders Dashboard link for ADMIN session', () => {
     const tree = renderer
       .create(
         <SessionProvider
           session={{ user: { name: 'admin user', role: 'ADMIN' } }}
         >
-          <Navbar>
-            <div>
-              <Link href='/classes'>Classes</Link>
-            </div>
-          </Navbar>
+          <Navbar />
         </SessionProvider>
       )
       .toJSON();
@@ -62,11 +53,7 @@ describe('Navbar rendering correctly', () => {
         <SessionProvider
           session={{ user: { name: 'student user', role: 'STUDENT' } }}
         >
-          <Navbar>
-            <div>
-              <Link href='/classes'>Classes</Link>
-            </div>
-          </Navbar>
+          <Navbar />
         </SessionProvider>
       )
       .toJSON();
@@ -80,11 +67,7 @@ describe('Navbar rendering correctly', () => {
     const tree = renderer
       .create(
         <SessionProvider session={null}>
-          <Navbar>
-            <div>
-              <Link href='/classes'>Classes</Link>
-            </div>
-          </Navbar>
+          <Navbar />
         </SessionProvider>
       )
       .toJSON();

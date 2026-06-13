@@ -63,20 +63,21 @@ export async function getServerSideProps(context) {
 
   let superBlockJsons = await getSuperBlockJsons(superblockURLS); // this is an array of urls
   let dashboardObjs = await createSuperblockDashboardObject(superBlockJsons);
-
   let totalChallenges = getTotalChallengesForSuperblocks(dashboardObjs);
 
   let studentData = await fetchStudentData();
+  const fetchError = studentData === null;
+  const safeStudentData = studentData ?? [];
 
   // Temporary check to map/accomodate hard-coded mock student data progress in unselected superblocks by teacher
   let studentsAreEnrolledInSuperblocks =
     checkIfStudentHasProgressDataForSuperblocksSelectedByTeacher(
-      studentData,
+      safeStudentData,
       dashboardObjs
     );
-  if (Array.isArray(studentData)) {
-    studentData.forEach(studentJSON => {
-      let indexToCheckProgress = studentData.indexOf(studentJSON);
+
+  if (!fetchError) {
+    safeStudentData.forEach((studentJSON, indexToCheckProgress) => {
       let enrollStatus =
         studentsAreEnrolledInSuperblocks[indexToCheckProgress] || [];
       let isStudentEnrolledInAtLeastOneSuperblock = enrollStatus.some(
@@ -102,9 +103,10 @@ export async function getServerSideProps(context) {
     props: {
       userSession,
       classroomId: context.params.id,
-      studentData,
-      totalChallenges: totalChallenges,
-      studentsAreEnrolledInSuperblocks
+      studentData: safeStudentData,
+      totalChallenges,
+      studentsAreEnrolledInSuperblocks,
+      fetchError
     }
   };
 }
@@ -114,7 +116,8 @@ export default function Home({
   classroomId,
   totalChallenges,
   studentData,
-  studentsAreEnrolledInSuperblocks
+  studentsAreEnrolledInSuperblocks,
+  fetchError
 }) {
   return (
     <Layout>
@@ -127,12 +130,15 @@ export default function Home({
         <>
           <Navbar>
             <div className='border-solid border-2 pl-4 pr-4'>
-              <Link href={'/classes'}>Classes</Link>
-            </div>
-            <div className='border-solid border-2 pl-4 pr-4'>
-              <Link href={'/'}> Menu</Link>
+              <Link href={'/'}>Menu</Link>
             </div>
           </Navbar>
+          {fetchError && (
+            <p className='text-center mt-4'>
+              Could not load student data. Please ensure the mock data server is
+              running.
+            </p>
+          )}
           <GlobalDashboardTable
             classroomId={classroomId}
             totalChallenges={totalChallenges}
